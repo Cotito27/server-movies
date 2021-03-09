@@ -253,9 +253,9 @@ ctrl.watch = async (req, res) => {
   videoInfo.optionsStream = [];
   videoInfo.description = $('#rmjs-1').text().trim();
   if(videoInfo.titleEpisode.toLowerCase().includes('temporada')) {
-    videoInfo.episode = parseInt(title.split('capitulo-')[1]);
-    videoInfo.season = parseInt(title.split('temporada-')[1].split('-')[0]);
- 
+    videoInfo.episode = parseInt(videoInfo.titleEpisode.split('Capítulo ')[1].trim());
+    videoInfo.season = parseInt(videoInfo.titleEpisode.split('Temporada ')[1].trim().split(' ')[0]);
+
   }
   $('[role="presentation"]').each(function() {
     let namLanguage = capitalizarPrimeraLetra($(this).parent().attr('id').split('_')[1]);
@@ -268,6 +268,68 @@ ctrl.watch = async (req, res) => {
       stream: $(this).attr('data-video')
     });
   });
+  let videosWatch = [];
+  $('#main_bg > div:nth-child(5) > div > div.video-info-left > ul').find('.video-block').each(function() {
+    if($(this).find('.name').text().trim().toLowerCase().includes('temporada')) {
+      videosWatch.push({
+        image: $(this).find('.picture').find('img').attr('src'),
+        title: $(this).find('.name').text().trim(),
+        season: parseInt($(this).find('.name').text().trim().split('Temporada')[1].trim().split(' ')[0]),
+        episode: parseInt($(this).find('.type').find('span').text().trim().replace('Ep ', '')),
+        date: $(this).find('.date').text().trim(),
+        targetWatch: $(this).find('a').attr('href')
+      });
+    } else {
+      videosWatch.push({
+        image: $(this).find('.picture').find('img').attr('src'),
+        title: $(this).find('.name').text().trim(),
+        date: $(this).find('.date').text().trim(),
+        targetWatch: $(this).find('a').attr('href')
+      });
+    }
+    
+  });
+  let videosRelevant = [];
+  $('#main_bg > div:nth-child(5) > div > div.video-info-right > ul').find('.video-block').each(function() {
+    videosRelevant.push({
+      image: $(this).find('.picture').find('img').attr('src'),
+      title: $(this).find('.name').text().trim(),
+      date: $(this).find('.date').text().trim(),
+      targetWatch: $(this).find('a').attr('href')
+    });
+  });
+  res.json({
+    videoInfo,
+    videosWatch,
+    videosRelevant
+  });
+}
+
+ctrl.tempSerie = async (req, res) => {
+  let title = req.params.title;
+  let uri = domain__filter + `ver/${title}`;
+  const $ = await request({ 
+    uri,
+    transform: (body) => cheerio.load(body),
+  }).catch((err) => {
+    console.log(err);
+  });
+  if(!$('.video-block')[0]) {
+    return res.json({
+      error: true,
+      message: 'Page not found'
+    })
+  }
+  let videoInfo = {};
+  videoInfo.title = $('#main_bg > div:nth-child(5) > div > div.video-info-left > div.video-details > span').text().trim();
+  videoInfo.titleEpisode = $('#main_bg > div:nth-child(5) > div > div.video-info-left > h1').text().trim()
+  videoInfo.description = $('#rmjs-1').text().trim();
+  if(videoInfo.titleEpisode.toLowerCase().includes('temporada')) {
+    videoInfo.episode = parseInt(videoInfo.titleEpisode.split('Capítulo ')[1].trim());
+    videoInfo.season = parseInt(videoInfo.titleEpisode.split('Temporada ')[1].trim().split(' ')[0]);
+
+  }
+
   let videosWatch = [];
   $('#main_bg > div:nth-child(5) > div > div.video-info-left > ul').find('.video-block').each(function() {
     if($(this).find('.name').text().trim().toLowerCase().includes('temporada')) {

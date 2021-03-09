@@ -10,5 +10,6 @@ router.get('/temporadas', homeController.temporadas);
 router.get('/popular', homeController.popular);
 router.get('/search', homeController.search);
 router.get('/ver/:title', homeController.watch);
+router.get('/ver/:title/temporadas', homeController.tempSerie);
 
 module.exports = { router };
